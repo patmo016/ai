@@ -17,7 +17,7 @@ public class MyWorld extends World {
    * and the number of generations that the genetic algorithm will 
    * execute.
      */
-    private final int _numTurns = 100;
+    private final int _numTurns = 50;
     private final int _numGenerations = 50000;
     
     public int genNum;
@@ -44,7 +44,7 @@ public class MyWorld extends World {
         this.setNumTurns(_numTurns);
         this.setNumGenerations(_numGenerations);
         genNum = 0;
-        evol = new EvolutionGraph();
+        evol = new EvolutionGraph(_numGenerations);
     }
 
     /* The main function for the MyWorld application
@@ -54,7 +54,7 @@ public class MyWorld extends World {
         // Here you can specify the grid size, window size and whether torun
         // in repeatable mode or not
         //
-        int gridSize = 24;
+        int gridSize = 28;
         int windowWidth = 700;
         int windowHeight = 500;
         boolean repeatableMode = false;
@@ -100,8 +100,8 @@ public class MyWorld extends World {
     public MyCreature newCreature(MyCreature parentOne, MyCreature parentTwo) {
            
         MyCreature newCreature = new MyCreature(percepts, actions);
-        float[][] crossOver = new float[actions][percepts];
-      //  Random rand = new Random();
+        int[][] crossOver = new int[actions][percepts];
+        Random rand = new Random();
         
         //now I have found 2 parents- cross their chromosomes;
         //numPercepts*numActions
@@ -112,55 +112,62 @@ public class MyWorld extends World {
               //  crossOver[i] = parentTwo.chromosome[i];
             //}
            
-           for(int j=0; j<parentOne.chromosome[i].length;j++){
-               
-               
-           //This crosses the chromosomes vertically     
-           if (j < 13)  {
-                crossOver[i][j] = parentOne.chromosome[i][j];
-            } else {
-                crossOver[i][j] = parentTwo.chromosome[i][j];
-            }
+           for(int j=0; j<crossOver[i].length;j++){
+               //mutation at 3%
+               if (Math.random()>0.97){
+                   //System.out.println("mutation");
+                   crossOver[i][j]=rand.nextInt(2);
+               }
+               if (parentOne.chromosome[i][j]==parentTwo.chromosome[i][j]){
+                   crossOver[i][j]=parentOne.chromosome[i][j];
+                //  System.out.print("same");
+               }else{
+                   crossOver[i][j]=rand.nextInt(2);   
+              //   System.out.print("diff");
+               }
            }
         }
-        newCreature.chromosome = crossOver;
+        newCreature.chromosome = crossOver;      
         return newCreature;
-
     }
-
-    public MyCreature getParent(MyCreature[] old_population, float fitsum) {
+ 
+    public MyCreature getParent(MyCreature[] old_population) {
       //Tournament selection
       MyCreature [] subset = new MyCreature[10];
       MyCreature selected = new MyCreature(27, 11);
-//      int count=0;
-//      Random rand = new Random();    
-//          while(count<subset.length){
-//              subset[count]= old_population[rand.nextInt(old_population.length)];
-//              count++;
-//          }       
-//          for (int i=0; i<subset.length; i++){
-//             int fitness = subset[i].getEnergy()+subset[i].timeOfDeath();
-//             if (i!=9 && fitness>(subset[i+1].getEnergy()+subset[i+1].timeOfDeath())){
-//                 selected= subset[i];            
-//             }           
-//          }
-//       
+      
+      Random rand = new Random();    
+      //pick 10 creatures for the subset
+          for (int i=0; i<subset.length;i++){
+              subset[i]= old_population[rand.nextInt(old_population.length)];             
+          }     
+          
+          for (int i=0; i<subset.length; i++){
+             int fitness = subset[i].getEnergy()+subset[i].timeOfDeath();
+             if (i!=9 && fitness>(subset[i+1].getEnergy()+subset[i+1].timeOfDeath())){
+                // System.out.println(fitness);
+                 selected= subset[i];            
+             }           
+          }
+       
 //       //roulette selection
-        float roulette = (float) Math.random();
-        float sumProb = 0;
-        for (MyCreature creature : old_population) {
-            //gives the creature the range of its probability theoretically should be a percentage.
-            //then finds whether its the random value;
-            if (sumProb < roulette && roulette < sumProb + (creature.getEnergy()+creature.timeOfDeath())/fitsum) {
-                   
-                //   System.out.println("roulette: " + roulette);
-                //   System.out.println("sumProb " + sumProb);
-               
-                selected = creature;
-            }
-            sumProb = sumProb + (creature.getEnergy()+creature.timeOfDeath())/fitsum;
-        }
-        return selected;
+//        float roulette = (float) Math.random();
+//        float sumProb = 0;
+//        for (MyCreature creature : old_population) {
+//            //gives the creature the range of its probability theoretically should be a percentage.
+//            //then finds whether its the random value;
+//            float fitness= creature.getEnergy()+creature.timeOfDeath();
+//           System.out.println("fitness: " + fitness/fitsum);
+//            if (sumProb < roulette && roulette < sumProb + fitness/fitsum) {
+//                   
+//                  System.out.println("roulette: " + roulette);
+//                   System.out.println("sumProb " + sumProb);
+//               
+//                selected = creature;
+//            }
+//            sumProb = sumProb + fitness/fitsum;
+//       }
+       return selected;
     }
 
     /* The MyWorld class must override this function, which is
@@ -192,7 +199,7 @@ public class MyWorld extends World {
         
         MyCreature parentOne;
         MyCreature parentTwo;
-        float fitsum = 0;
+        int fitsum = 0;
         // Here is how you can get information about old creatures and how
         // well they did in the simulation
         float avgLifeTime = 0f;
@@ -203,6 +210,8 @@ public class MyWorld extends World {
             // creature is dead, then this number gives the enrgy of the creature
             // at the time of death.
             int energy = creature.getEnergy();
+           // System.out.println(creature.timeOfDeath());
+            
             fitsum += (energy+creature.timeOfDeath());
             // System.out.println("count the damn energy"+ energy);
             // This querry can tell you if the creature died during simulation
@@ -219,16 +228,17 @@ public class MyWorld extends World {
                 avgLifeTime += (float) _numTurns;
             }
         }
-
-        System.out.println("total fitness " + fitsum);
-        
+  
         genNum++;
-        evol.addPoint(genNum, nSurvivors);
+        fitsum /= numCreatures;
+        evol.addPoint(genNum, nSurvivors, fitsum);
         // Right now the information is used to print some stats...but you should
         // use this information to access creatures fitness.  It's up to you how
         // you define your fitness function.  You should add a print out or
         // some visual display of average fitness over generations.
         avgLifeTime /= (float) numCreatures;
+       
+        System.out.println("Average fitness " + fitsum);
         System.out.println("Simulation stats:");
         System.out.println("  Survivors    : " + nSurvivors + " out of " + numCreatures);
         System.out.println("  Avg life time: " + avgLifeTime + " turns");
@@ -239,11 +249,18 @@ public class MyWorld extends World {
         // some elitism, you can use old creatures in the next generation.  This
         // example code uses all the creatures from the old generation in the
         // new generation.
+         int count=0;
         for (int i = 0; i < numCreatures; i++) {
-            parentOne = getParent(old_population, fitsum);
-            parentTwo = getParent(old_population, fitsum);
+           
+            if (!old_population[i].isDead()&&count<8){
+                new_population[i]=old_population[i];
+                count++;
+            }else{
+            parentOne = getParent(old_population);
+            parentTwo = getParent(old_population);
 
             new_population[i] = newCreature(parentOne, parentTwo);
+            }
 
 //        new_population[i] = old_population[i];
         }

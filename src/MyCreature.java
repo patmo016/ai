@@ -15,7 +15,7 @@ public class MyCreature extends Creature {
   // Random number generator
   Random rand = new Random();
  
-  float[][] chromosome;
+  int[][] chromosome;
   /* Empty constructor - might be a good idea here to put the code that 
    initialises the chromosome to some random state   
   
@@ -25,14 +25,15 @@ public class MyCreature extends Creature {
   */
   public MyCreature(int numPercepts, int numActions) {
       //chromosome should be compiled of 27*11 weights
-      chromosome = new float [numActions][numPercepts];
+      chromosome = new int [numActions][numPercepts];
       for (int i=0; i< chromosome.length; i++){
-          //System.out.println(i);
+         // System.out.println();
           for (int j=0; j<chromosome[i].length; j++){
-              chromosome[i][j] = (float) Math.random();
-              //System.out.println(chromosome[i][j]); 
+              chromosome[i][j] = (rand.nextInt(2));
+              //System.out.print(chromosome[i][j]); 
           }
-      }       
+      }    
+     // System.out.println();
 
   }
   
@@ -65,12 +66,12 @@ public class MyCreature extends Creature {
       for (int i=0; i<actionArray.length; i++){
           //System.out.println("action"+i);
           for (int j = 0; j<chromosome[i].length; j++){
-             //System.out.println("percept " +percepts[j]+" p+c:" +percepts[j]*chromosome[i][j]);
+           //  System.out.println("percept " +percepts[j]+" p+c:" +percepts[j]*chromosome[i][j]);
               actionArray[i] += percepts[j]*chromosome[i][j];
-              // System.out.println(chromosome[i][j]);
-               // System.out.println("percept: " + j +" " +percepts[j]);
-                //System.out.print("action: " +i+ " " + actionArray[i] + "\n");           
-              //System.out.println(i);       
+             // System.out.println(chromosome[i][j]);
+             // System.out.println("percept: " + j +" " +percepts[j]);
+             //System.out.print("action: " +i+ " " + actionArray[i] + "\n");           
+             //System.out.println(i);       
           }    
          // System.out.println("action prob is" + actionArray[i]);
        
