@@ -18,7 +18,7 @@ public class MyWorld extends World {
    * execute.
      */
     private final int _numTurns = 50;
-    private final int _numGenerations = 50000;
+    private final int _numGenerations = 5000;
     
     public int genNum;
     public EvolutionGraph evol;
@@ -133,7 +133,7 @@ public class MyWorld extends World {
  
     public MyCreature getParent(MyCreature[] old_population) {
       //Tournament selection
-      MyCreature [] subset = new MyCreature[10];
+      MyCreature [] subset = new MyCreature[7];
       MyCreature selected = new MyCreature(27, 11);
       
       Random rand = new Random();    
@@ -144,7 +144,7 @@ public class MyWorld extends World {
           
           for (int i=0; i<subset.length; i++){
              int fitness = subset[i].getEnergy()+subset[i].timeOfDeath();
-             if (i!=9 && fitness>(subset[i+1].getEnergy()+subset[i+1].timeOfDeath())){
+             if (i!=subset.length-1 && fitness>(subset[i+1].getEnergy()+subset[i+1].timeOfDeath())){
                 // System.out.println(fitness);
                  selected= subset[i];            
              }           
